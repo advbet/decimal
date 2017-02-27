@@ -296,6 +296,9 @@ func (d Number) Value() (driver.Value, error) {
 
 // UnmarshalJSON implements Unmarshaler interface from encoding/json package.
 func (d *Number) UnmarshalJSON(data []byte) error {
+	if len(data) >= 2 && data[0] == '"' && data[len(data)-1] == '"' {
+		return d.UnmarshalText(data[1 : len(data)-1])
+	}
 	return d.UnmarshalText(data)
 }
 

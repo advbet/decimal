@@ -178,6 +178,19 @@ func TestNumberUnmarshalJSON(t *testing.T) {
 	assert.Equal(t, expected, data.Num)
 }
 
+func TestNumberUnmarshalJSONString(t *testing.T) {
+	var data struct {
+		Num Number `json:"num"`
+	}
+	err := json.Unmarshal([]byte(`{"num": "123.456"}`), &data)
+	expected := Number{
+		val: 123456,
+		exp: -3,
+	}
+	assert.NoError(t, err, "unmarshaling should not fail")
+	assert.Equal(t, expected, data.Num)
+}
+
 func TestNumberMarshalJSON(t *testing.T) {
 	data := struct {
 		Num Number `json:"num"`
