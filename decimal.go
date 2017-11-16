@@ -3,6 +3,7 @@ package decimal
 import (
 	"database/sql/driver"
 	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
 )
@@ -50,6 +51,11 @@ var logTable = []int64{
 	10000000000000000,
 	100000000000000000,
 	1000000000000000000,
+}
+
+// Zero create a new decimal number that is equal to zero.
+func Zero() Number {
+	return Number{}
 }
 
 // New creates a new decimal number having value of val*10^exp.
@@ -186,6 +192,24 @@ func (d Number) Mul(that Number) Number {
 // MulInt calculates d * n value.
 func (d Number) MulInt(n int) Number {
 	return Number{d.val * int64(n), d.exp}
+}
+
+// Neg returnds -d.
+func (d Number) Neg() Number {
+	return Number{d.val * -1, d.exp}
+}
+
+// Rat returns a rational representation of decimal.
+func (d Number) Rat() *big.Rat {
+	one := big.NewInt(1)
+	ten := big.NewInt(10)
+	if d.exp <= 0 {
+		denom := new(big.Int).Exp(ten, big.NewInt(-int64(d.exp)), nil)
+		return new(big.Rat).SetFrac(big.NewInt(d.val), denom)
+	}
+	mul := new(big.Int).Exp(ten, big.NewInt(int64(d.exp)), nil)
+	num := new(big.Int).Mul(big.NewInt(d.val), mul)
+	return new(big.Rat).SetFrac(num, one)
 }
 
 // ScaledVal scales decimal number to a given exponent and and returns

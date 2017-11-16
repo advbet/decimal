@@ -3,6 +3,7 @@ package decimal
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/shopspring/decimal"
@@ -293,6 +294,7 @@ func TestNumberMulInt(t *testing.T) {
 }
 
 func TestNumberIsZero(t *testing.T) {
+	assert.True(t, Zero().IsZero())
 	assert.True(t, Number{0, -1}.IsZero())
 	assert.True(t, Number{0, 0}.IsZero())
 	assert.True(t, Number{0, 1}.IsZero())
@@ -353,6 +355,62 @@ func TestNumberRound(t *testing.T) {
 
 		result := num.Round(test.exp, test.rule)
 		assert.Equal(t, res, result, fmt.Sprintf("%s round(%d, %d)", test.num, test.exp, test.rule))
+	}
+}
+
+func TestDecimalNeg(t *testing.T) {
+	tests := []struct {
+		n        Number
+		expected Number
+	}{
+		{
+			n:        Zero(),
+			expected: Zero(),
+		},
+		{
+			n:        FromInt(1),
+			expected: FromInt(-1),
+		},
+		{
+			n:        FromInt(-1),
+			expected: FromInt(1),
+		},
+		{
+			n:        New(13, 2),
+			expected: New(-13, 2),
+		},
+		{
+			n:        New(13, -2),
+			expected: New(-13, -2),
+		},
+	}
+
+	for _, test := range tests {
+		assert.Equal(t, test.expected, test.n.Neg())
+	}
+}
+
+func TestDecimalRat(t *testing.T) {
+	tests := []struct {
+		n Number
+		r *big.Rat
+	}{
+		{
+			n: New(1, 0),
+			r: big.NewRat(1, 1),
+		},
+		{
+			n: New(5, -1),
+			r: big.NewRat(1, 2),
+		},
+		{
+			n: New(5, 1),
+			r: big.NewRat(50, 1),
+		},
+	}
+	for _, test := range tests {
+		a := test.n.Rat()
+		assert.Equal(t, test.r.Cmp(a), 0)
 	}
 }
 
