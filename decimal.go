@@ -291,8 +291,11 @@ func (d *Number) UnmarshalText(data []byte) (err error) {
 		return err
 	}
 
-	if parts[0] == "" || parts[1] == "" {
+	if parts[1] == "" {
 		return fmt.Errorf("decimal.Number: parsing \"%s\": invalid syntax", data)
+	}
+	if parts[0] == "" {
+		parts[0] = "0"
 	}
 
 	if d.val, err = strconv.ParseInt(parts[0]+parts[1], 10, 64); err != nil {

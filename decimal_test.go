@@ -116,6 +116,9 @@ func TestNumberUnmarshalText(t *testing.T) {
 		{"123.4", Number{1234, -1}, true},
 		{"1234", Number{1234, 0}, true},
 		{"12340", Number{12340, 0}, true},
+		{".2", Number{2, -1}, true},
+		{".0", Number{0, -1}, true},
+		{"-.4", Number{-4, -1}, true},
 
 		// this is a side effect of using strconv.ParseInt
 		{"+1", Number{1, 0}, true},
@@ -128,8 +131,6 @@ func TestNumberUnmarshalText(t *testing.T) {
 		{"1.+2", Number{}, false},
 		{"--1", Number{}, false},
 		{".-2", Number{}, false},
-		{".2", Number{}, false},
-		{".0", Number{}, false},
 		{".", Number{}, false},
 		{"1.-2", Number{}, false},
 		{"1.-", Number{}, false},
