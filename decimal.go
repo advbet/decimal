@@ -3,6 +3,7 @@ package decimal
 import (
 	"database/sql/driver"
 	"fmt"
+	"math"
 	"math/big"
 	"strconv"
 	"strings"
@@ -78,6 +79,19 @@ func FromString(str string) (Number, error) {
 	d := Number{}
 	err := d.UnmarshalText([]byte(str))
 	return d, err
+}
+
+// FromRat creates a new instance of decimal number from a Rat value with
+// given exponent.
+func FromRat(val *big.Rat, exp int) Number {
+	f, _ := val.Float64()
+	f /= math.Pow10(exp)
+	digits := int(math.Log10(f))
+	if digits > 18 {
+		exp += (digits - 18)
+		f /= math.Pow10(digits - 18)
+	}
+	return Number{int64(f), exp}
 }
 
 // Val extracts private field holding current integer value. Real decimal number

@@ -252,6 +252,80 @@ func TestFromInt(t *testing.T) {
 	assert.Equal(t, Number{-5, 0}, FromInt(-5))
 }
 
+func TestFromRat(t *testing.T) {
+	tests := []struct {
+		rat *big.Rat
+		exp int
+		n   Number
+	}{
+		{
+			rat: big.NewRat(1234, 100),
+			exp: -2,
+			n:   Number{1234, -2},
+		},
+		{
+			rat: big.NewRat(1234, 100),
+			exp: -1,
+			n:   Number{123, -1},
+		},
+		{
+			rat: big.NewRat(1234, 100),
+			exp: 0,
+			n:   Number{12, 0},
+		},
+		{
+			rat: big.NewRat(1234, 100),
+			exp: 1,
+			n:   Number{1, 1},
+		},
+		{
+			rat: big.NewRat(1000000000, 3),
+			exp: 0,
+			n:   Number{333333333, 0},
+		},
+		{
+			rat: big.NewRat(1000000000, 3),
+			exp: -7,
+			n:   Number{3333333333333333, -7},
+		},
+		{
+			rat: big.NewRat(1000000000, 3),
+			exp: -8,
+			n:   Number{33333333333333332, -8},
+		},
+		{
+			rat: big.NewRat(1000000000, 3),
+			exp: -9,
+			n:   Number{333333333333333312, -9},
+		},
+		{
+			rat: big.NewRat(1000000000, 3),
+			exp: -10,
+			n:   Number{3333333333333332992, -10},
+		},
+		{
+			rat: big.NewRat(1000000000, 3),
+			exp: -11,
+			n:   Number{3333333333333332992, -10},
+		},
+		{
+			rat: big.NewRat(1000000000, 3),
+			exp: -12,
+			n:   Number{3333333333333332992, -10},
+		},
+		{
+			rat: big.NewRat(1000000000, 3),
+			exp: -13,
+			n:   Number{3333333333333332992, -10},
+		},
+	}
+
+	for _, test := range tests {
+		actual := FromRat(test.rat, test.exp)
+		assert.Equalf(t, test.n, actual, "%s (%d) expeted %s, got %s (%d * 10^%d)", test.rat, test.exp, test.n, actual, actual.val, actual.exp)
+	}
+}
+
 func TestNew(t *testing.T) {
 	assert.Equal(t, Number{5, 0}, New(5, 0))
 	assert.Equal(t, Number{0, 0}, New(0, 0))
