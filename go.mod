@@ -1,6 +1,6 @@
 module github.com/advbet/decimal
 
-go 1.18
+go 1.17
 
 require (
 	github.com/shopspring/decimal v1.3.1
