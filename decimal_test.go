@@ -489,6 +489,30 @@ func TestDecimalRat(t *testing.T) {
 	}
 }
 
+func TestDenormalizePanic(t *testing.T) {
+	tests := []struct {
+		n   Number
+		exp int
+		msg string
+	}{
+		{
+			n:   New(123, -2),
+			exp: -19,
+			msg: "logTable lookup should fail",
+		},
+		{
+			n:   New(112045202, -4),
+			exp: -17,
+			msg: "scaled number should not be equal to original",
+		},
+	}
+	for _, tt := range tests {
+		assert.Panics(t, func() {
+			tt.n.denormalize(tt.exp)
+		}, tt.msg)
+	}
+}
+
 func BenchmarkNumberScanRoundMarshal(b *testing.B) {
 	var d Number
 	for i := 0; i < b.N; i++ {

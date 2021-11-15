@@ -10,7 +10,7 @@ import (
 )
 
 // Number is a type used to store precise decimal values. It is used to
-// store data from DECIMAL / NUMERC fields from a database without loosing
+// store data from DECIMAL / NUMERIC fields from a database without loosing
 // precision. This type also have some helper methods for basic arithmetical
 // operation. All except Div operation is executed without a loss of precision.
 type Number struct {
@@ -115,8 +115,12 @@ func (d *Number) denormalize(exp int) {
 		panic("decimal.Number: logTable lookup failed, int64 overflow")
 	}
 	scale := logTable[log]
+	origin := d.val
 	d.exp -= log
 	d.val *= scale
+	if d.val/scale != origin {
+		panic("decimal.Number: scaled number is not equal original, int64 overflow")
+	}
 }
 
 // Round scales decimal value to an integer value with given exponent. On
@@ -171,7 +175,7 @@ func (d Number) Round(exp int, rule RoundRule) Number {
 			d.val += sign
 		}
 		return d
-	default: // trucate the remainder
+	default: // truncate the remainder
 		return d
 	}
 }
@@ -208,7 +212,7 @@ func (d Number) MulInt(n int) Number {
 	return Number{d.val * int64(n), d.exp}
 }
 
-// Neg returnds -d.
+// Neg returns -d.
 func (d Number) Neg() Number {
 	return Number{d.val * -1, d.exp}
 }

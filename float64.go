@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// Float64 retuns decimal value approximation as float64.
+// Float64 returns decimal value approximation as float64.
 func (d Number) Float64() float64 {
 	f, _ := strconv.ParseFloat(fmt.Sprintf("%de%d", d.val, d.exp), 64)
 	// Errors are ignored, for +Inf, -Inf cases, f will be set correctly
