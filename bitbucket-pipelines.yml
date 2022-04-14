@@ -1,9 +1,0 @@
-image: golang:1.17
-
-pipelines:
-  default:
-    - step:
-        script:
-          - go get -t -v
-          - go test -v
-          - go build -v
