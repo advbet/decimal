@@ -174,11 +174,11 @@ func TestNumberScan(t *testing.T) {
 // FIXME: this needs discussion, output changed:
 //    expected: []uint8([]byte{0x31, 0x32, 0x2e, 0x33})
 //    actual  : string("12.3")
-//func TestNumberValue(t *testing.T) {
-//	val, err := newDecimal.New(123, -1).Value()
-//	assert.Nil(t, err)
-//	assert.Equal(t, []byte("12.3"), val)
-//}
+func TestNumberValue(t *testing.T) {
+	val, err := newDecimal.New(123, -1).Value()
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("12.3"), val)
+}
 
 func TestNumberUnmarshalJSON(t *testing.T) {
 	var data struct {
@@ -200,19 +200,16 @@ func TestNumberUnmarshalJSONString(t *testing.T) {
 	assert.Equal(t, expected, data.Num)
 }
 
-// FIXME: this needs discussion, output changed:
-//    expected: "{\"num\":123.456}"
-//    actual  : "{\"num\":\"123.456\"}"
-//func TestNumberMarshalJSON(t *testing.T) {
-//	data := struct {
-//		Num Number `json:"num"`
-//	}{
-//		newDecimal.New(123456, -3),
-//	}
-//	blob, err := json.Marshal(&data)
-//	assert.NoError(t, err, "json marshaling should not fail")
-//	assert.Equal(t, `{"num":123.456}`, string(blob))
-//}
+func TestNumberMarshalJSON(t *testing.T) {
+	data := struct {
+		Num Number `json:"num"`
+	}{
+		newDecimal.New(123456, -3),
+	}
+	blob, err := json.Marshal(&data)
+	assert.NoError(t, err, "json marshaling should not fail")
+	assert.Equal(t, `{"num":123.456}`, string(blob))
+}
 
 func TestNumberCmp(t *testing.T) {
 	tests := []struct {

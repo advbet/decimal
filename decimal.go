@@ -23,6 +23,10 @@ const (
 	RoundBankers                   // Round to nearest, on tie round to even number
 )
 
+func init() {
+	newDecimal.MarshalJSONWithoutQuotes = true
+}
+
 // NewFromRat this only works for small Rats, big.Rats won't necessarily fit into a Float64,
 // so you'll be losing information here.
 // https://github.com/shopspring/decimal/pull/4/files
