@@ -2,6 +2,7 @@ package decimal
 
 import (
 	"database/sql/driver"
+	"errors"
 	"fmt"
 	"math"
 	"math/big"
@@ -30,6 +31,11 @@ const (
 	RoundCeil                      // Directed rounding towards negative infinity
 	RoundMath                      // Round to nearest, on tie round away from zero
 	RoundBankers                   // Round to nearest, on tie round to even number
+)
+
+var (
+	errScaledNumberNotEqual = errors.New("decimal.Number: scaled number is not equal original, int64 overflow")
+	errLogTableLookup       = errors.New("decimal.Number: logTable lookup failed, int64 overflow")
 )
 
 var logTable = []int64{
@@ -106,21 +112,22 @@ func (d *Number) Exp() int {
 	return d.exp
 }
 
-func (d *Number) denormalize(exp int) {
+func (d *Number) denormalize(exp int) error {
 	if exp >= d.exp {
-		return
+		return nil
 	}
 	log := d.exp - exp
 	if log >= len(logTable) {
-		panic("decimal.Number: logTable lookup failed, int64 overflow")
+		return errLogTableLookup
 	}
 	scale := logTable[log]
 	origin := d.val
 	d.exp -= log
 	d.val *= scale
 	if d.val/scale != origin {
-		panic("decimal.Number: scaled number is not equal original, int64 overflow")
+		return errScaledNumberNotEqual
 	}
+	return nil
 }
 
 // Round scales decimal value to an integer value with given exponent. On
@@ -129,7 +136,9 @@ func (d *Number) denormalize(exp int) {
 func (d Number) Round(exp int, rule RoundRule) Number {
 	// scale-down case
 	if exp <= d.exp {
-		d.denormalize(exp)
+		if err := d.denormalize(exp); err != nil {
+			panic(err)
+		}
 		return d
 	}
 
@@ -188,10 +197,14 @@ func (d Number) IsZero() bool {
 
 // Add implements + operation for decimal numbers
 func (d Number) Add(that Number) Number {
+	var err error
 	if that.exp < d.exp {
-		d.denormalize(that.exp)
+		err = d.denormalize(that.exp)
 	} else {
-		that.denormalize(d.exp)
+		err = that.denormalize(d.exp)
+	}
+	if err != nil {
+		panic(err)
 	}
 	return Number{d.val + that.val, d.exp}
 }
@@ -238,7 +251,9 @@ func (d Number) Rat() *big.Rat {
 // call ScaledVal(0) would return 12.
 func (d Number) ScaledVal(exp int) int64 {
 	if d.exp > exp {
-		d.denormalize(exp)
+		if err := d.denormalize(exp); err != nil {
+			panic(err)
+		}
 		return d.val
 	} else if d.exp < exp {
 		for ; d.exp < exp; d.exp++ {
@@ -255,10 +270,20 @@ func (d Number) ScaledVal(exp int) int64 {
 //   +1 if d >  n
 //
 func (d Number) Cmp(n Number) int {
+	var (
+		err   error
+		copyD = d
+		copyN = n
+	)
+
 	if n.exp < d.exp {
-		d.denormalize(n.exp)
+		err = d.denormalize(n.exp)
 	} else {
-		n.denormalize(d.exp)
+		err = n.denormalize(d.exp)
+	}
+	if err != nil {
+		nErr := fmt.Errorf("%w, Cmp() d:%s n:%s", err, copyD, copyN)
+		panic(nErr)
 	}
 	// exponents must be the same for both values now
 	switch {

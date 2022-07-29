@@ -489,27 +489,28 @@ func TestDecimalRat(t *testing.T) {
 	}
 }
 
-func TestDenormalizePanic(t *testing.T) {
+func TestDenormalize(t *testing.T) {
 	tests := []struct {
 		n   Number
 		exp int
 		msg string
+		err error
 	}{
 		{
 			n:   New(123, -2),
-			exp: -19,
-			msg: "logTable lookup should fail",
+			exp: -25,
+			msg: "log table lookup, int64 overflow",
+			err: errLogTableLookup,
 		},
 		{
 			n:   New(112045202, -4),
 			exp: -17,
-			msg: "scaled number should not be equal to original",
+			msg: "scaled number is not equal original, int64 overflow",
+			err: errScaledNumberNotEqual,
 		},
 	}
 	for _, tt := range tests {
-		assert.Panics(t, func() {
-			tt.n.denormalize(tt.exp)
-		}, tt.msg)
+		assert.ErrorIs(t, tt.n.denormalize(tt.exp), tt.err, tt.msg)
 	}
 }
 
