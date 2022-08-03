@@ -57,10 +57,6 @@ func TestFromFloat64(t *testing.T) {
 		{math.MaxFloat64, newDecimal.New(17976931348623157, 292), false},
 		{-math.MaxFloat64, newDecimal.New(-17976931348623157, 292), false},
 		{math.SmallestNonzeroFloat64, newDecimal.New(5, -324), false},
-		// FIXME: ?
-		{math.Inf(1), Number{}, true},
-		{math.Inf(-1), Number{}, true},
-		{math.NaN(), Number{}, true},
 	}
 
 	for _, test := range tests {
