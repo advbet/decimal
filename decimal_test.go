@@ -40,7 +40,7 @@ func TestNumberAddSub(t *testing.T) {
 		// Zero should never be compared with == or != directly, please use decimal.Equal or decimal.Cmp instead.
 		if sum.IsZero() {
 			assert.Equal(t, true, sum.Equal(sum1)) // sum = a + b
-			assert.Equal(t, true, sum.Equal(sum2)) // sum = a + b + b -b
+			assert.Equal(t, true, sum.Equal(sum2)) // sum = a + b + b - b
 		} else {
 			assert.Equal(t, sum, sum1) // sum = a + b
 			assert.Equal(t, sum, sum2) // sum = a + b + b -b
