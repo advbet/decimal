@@ -27,19 +27,6 @@ func init() {
 	newDecimal.MarshalJSONWithoutQuotes = true
 }
 
-// NewFromRat this only works for small Rats, big.Rats won't necessarily fit into a Float64,
-// so you'll be losing information here.
-// https://github.com/shopspring/decimal/pull/4/files
-func NewFromRat(value *big.Rat, exp int) newDecimal.Decimal {
-	if value.IsInt() {
-		f, _ := value.Float64()
-		return newDecimal.New(int64(math.Floor(f)), 0)
-	}
-
-	floatValue, _ := value.Float64()
-	return newDecimal.NewFromFloatWithExponent(floatValue, int32(exp))
-}
-
 // Round scales decimal value to an integer value with given exponent. On
 // exponent scale-down decimal value precision is preserved, on exponent
 // scale-up rounding with the given rounding rule is performed.
