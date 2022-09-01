@@ -294,17 +294,17 @@ func TestFromRat(t *testing.T) {
 		{
 			rat:      big.NewRat(1000000000, 3),
 			exp:      -8,
-			expected: newDecimal.New(33333333333333332, -8),
+			expected: newDecimal.New(33333333333333333, -8),
 		},
 		{
 			rat:      big.NewRat(1000000000, 3),
 			exp:      -9,
-			expected: newDecimal.New(333333333333333313, -9),
+			expected: newDecimal.New(333333333333333333, -9),
 		},
 		{
 			rat:      big.NewRat(1000000000, 3),
 			exp:      -10,
-			expected: newDecimal.New(3333333333333333135, -10),
+			expected: newDecimal.New(3333333333333333333, -10),
 		},
 		{
 			rat:      big.NewRat(1000000000, 3),
