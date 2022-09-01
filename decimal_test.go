@@ -171,13 +171,10 @@ func TestNumberScan(t *testing.T) {
 	assert.NotNil(t, a.Scan("Strings are not supported"))
 }
 
-// FIXME: this needs discussion, output changed:
-//    expected: []uint8([]byte{0x31, 0x32, 0x2e, 0x33})
-//    actual  : string("12.3")
 func TestNumberValue(t *testing.T) {
 	val, err := newDecimal.New(123, -1).Value()
 	assert.Nil(t, err)
-	assert.Equal(t, []byte("12.3"), val)
+	assert.Equal(t, "12.3", val)
 }
 
 func TestNumberUnmarshalJSON(t *testing.T) {
