@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/shopspring/decimal"
 	newDecimal "github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 )
@@ -245,7 +246,12 @@ func TestNumberCmp(t *testing.T) {
 
 	for _, test := range tests {
 		actual := test.x.Cmp(test.y)
-		assert.Equal(t, test.expected, actual, fmt.Sprintf("%s cmp %s", test.x, test.y))
+		assert.Equal(
+			t,
+			test.expected,
+			actual,
+			fmt.Sprintf("%s cmp %s", test.x, test.y),
+		)
 	}
 }
 
@@ -307,26 +313,62 @@ func TestFromRat(t *testing.T) {
 			expected: newDecimal.New(3333333333333333333, -10),
 		},
 		{
-			rat:      big.NewRat(1000000000, 3),
-			exp:      -11,
-			expected: newDecimal.NewFromFloatWithExponent(333333333.33333331347, -11),
+			rat: big.NewRat(1000000000, 3),
+			exp: -11,
+			expected: decimal.NewFromBigInt(
+				new(big.Int).Add(
+					new(big.Int).Mul(
+						big.NewInt(3333333333333333),
+						big.NewInt(10000),
+					),
+					big.NewInt(3333),
+				),
+				-11,
+			),
 		},
 		{
-			rat:      big.NewRat(1000000000, 3),
-			exp:      -12,
-			expected: newDecimal.NewFromFloatWithExponent(333333333.33333331347, -12),
+			rat: big.NewRat(1000000000, 3),
+			exp: -12,
+			expected: decimal.NewFromBigInt(
+				new(big.Int).Add(
+					new(big.Int).Mul(
+						big.NewInt(3333333333333333),
+						big.NewInt(100000),
+					),
+					big.NewInt(33333),
+				),
+				-12,
+			),
 		},
 		{
-			rat:      big.NewRat(1000000000, 3),
-			exp:      -13,
-			expected: newDecimal.NewFromFloatWithExponent(333333333.33333331347, -13),
+			rat: big.NewRat(1000000000, 3),
+			exp: -13,
+			expected: decimal.NewFromBigInt(
+				new(big.Int).Add(
+					new(big.Int).Mul(
+						big.NewInt(3333333333333333),
+						big.NewInt(1000000),
+					),
+					big.NewInt(333333),
+				),
+				-13,
+			),
 		},
 	}
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("test-%d", i), func(t *testing.T) {
 			actual := newDecimal.NewFromBigRat(tt.rat, -1*tt.exp)
-			assert.Equalf(t, tt.expected, actual, "%s (%d) expected %s, got %s (%d * 10^%d)", tt.rat, tt.exp, tt.expected, actual, actual.CoefficientInt64(), actual.Exponent())
+			assert.Equalf(
+				t,
+				tt.expected,
+				actual, "%s (%d) expected %s, got %s (%d * 10^%d)",
+				tt.rat,
+				tt.expected,
+				actual,
+				actual.CoefficientInt64(),
+				actual.Exponent(),
+			)
 		})
 	}
 }
@@ -358,7 +400,12 @@ func TestNumberMulInt(t *testing.T) {
 
 	for _, test := range tests {
 		actual := MulInt(test.x, test.y)
-		assert.Equal(t, test.expected, actual, fmt.Sprintf("%s * %d", test.x, test.y))
+		assert.Equal(
+			t,
+			test.expected,
+			actual,
+			fmt.Sprintf("%s * %d", test.x, test.y),
+		)
 	}
 }
 
@@ -427,9 +474,22 @@ func TestNumberRound(t *testing.T) {
 
 		// Zero should never be compared with == or != directly, please use decimal.Equal or decimal.Cmp instead.
 		if result.IsZero() {
-			assert.Equal(t, true, result.Equal(res), fmt.Sprintf("%s round(%d, %d)", test.num, test.exp, test.rule))
+			assert.Equal(
+				t,
+				true,
+				result.Equal(res),
+				fmt.Sprintf("%s round(%d, %d)",
+					test.num,
+					test.exp,
+					test.rule),
+			)
 		} else {
-			assert.Equal(t, res, result, fmt.Sprintf("%s round(%d, %d)", test.num, test.exp, test.rule))
+			assert.Equal(
+				t,
+				res,
+				result,
+				fmt.Sprintf("%s round(%d, %d)", test.num, test.exp, test.rule),
+			)
 		}
 	}
 }
