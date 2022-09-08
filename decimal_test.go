@@ -6,7 +6,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/shopspring/decimal"
 	newDecimal "github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 )
@@ -315,7 +314,7 @@ func TestFromRat(t *testing.T) {
 		{
 			rat: big.NewRat(1000000000, 3),
 			exp: -11,
-			expected: decimal.NewFromBigInt(
+			expected: newDecimal.NewFromBigInt(
 				new(big.Int).Add(
 					new(big.Int).Mul(
 						big.NewInt(3333333333333333),
@@ -329,7 +328,7 @@ func TestFromRat(t *testing.T) {
 		{
 			rat: big.NewRat(1000000000, 3),
 			exp: -12,
-			expected: decimal.NewFromBigInt(
+			expected: newDecimal.NewFromBigInt(
 				new(big.Int).Add(
 					new(big.Int).Mul(
 						big.NewInt(3333333333333333),
@@ -343,7 +342,7 @@ func TestFromRat(t *testing.T) {
 		{
 			rat: big.NewRat(1000000000, 3),
 			exp: -13,
-			expected: decimal.NewFromBigInt(
+			expected: newDecimal.NewFromBigInt(
 				new(big.Int).Add(
 					new(big.Int).Mul(
 						big.NewInt(3333333333333333),
