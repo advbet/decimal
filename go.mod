@@ -1,4 +1,4 @@
-module github.com/advbet/decimal
+module github.com/advbet/decimal/v2
 
 go 1.17
 
