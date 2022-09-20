@@ -17,11 +17,10 @@ jobs:
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v2
       with:
-        version: v1.45
-        args: --disable-all --enable=govet --enable=unused --enable=structcheck --enable=deadcode
+        version: v1.49
 
     - name: Build
-      run: go build -v ./...
+      run: go build ./...
 
     - name: Test
-      run: go test -race -failfast -timeout 60s -v ./...
+      run: go test -race -failfast -timeout 60s ./...

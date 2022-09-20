@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/shopspring/decimal"
+	newDecimal "github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,61 +27,70 @@ func TestNumberAddSub(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		a, err := FromString(test.a)
+		a, err := newDecimal.NewFromString(test.a)
 		assert.NoError(t, err)
-		b, err := FromString(test.b)
+		b, err := newDecimal.NewFromString(test.b)
 		assert.NoError(t, err)
-		sum, err := FromString(test.sum)
+		sum, err := newDecimal.NewFromString(test.sum)
 		assert.NoError(t, err)
 
-		assert.Equal(t, sum, a.Add(b))               // sum = a + b
-		assert.Equal(t, sum, a.Add(b).Add(b).Sub(b)) // sum = a + b + b -b
+		sum1 := a.Add(b)
+		sum2 := a.Add(b).Add(b).Sub(b)
+
+		// Zero should never be compared with == or != directly, please use decimal.Equal or decimal.Cmp instead.
+		if sum.IsZero() {
+			assert.Equal(t, true, sum.Equal(sum1)) // sum = a + b
+			assert.Equal(t, true, sum.Equal(sum2)) // sum = a + b + b - b
+		} else {
+			assert.Equal(t, sum, sum1) // sum = a + b
+			assert.Equal(t, sum, sum2) // sum = a + b + b -b
+		}
 	}
 }
 
 func TestNumberMul(t *testing.T) {
-	a := Number{12, 2}
-	b := Number{12, -2}
+	a := newDecimal.New(12, 2)
+	b := newDecimal.New(12, -2)
 
-	assert.Equal(t, Number{144, 0}, a.Mul(b))
+	assert.Equal(t, newDecimal.New(144, 0), a.Mul(b))
 }
 
 func TestNumberScaledInt64(t *testing.T) {
-	assert.Equal(t, int64(12), Number{1234, -2}.ScaledVal(0))
-	assert.Equal(t, int64(1234), Number{1234, -2}.ScaledVal(-2))
-	assert.Equal(t, int64(123400), Number{1234, -2}.ScaledVal(-4))
+	assert.Equal(t, int64(12), ScaledVal(newDecimal.New(1234, -2), 0))
+	assert.Equal(t, int64(1234), ScaledVal(newDecimal.New(1234, -2), -2))
+	assert.Equal(t, int64(123400), ScaledVal(newDecimal.New(1234, -2), -4))
 }
 
 func TestNumberValExp(t *testing.T) {
-	a := Number{1, 2}
-	assert.Equal(t, int64(1), a.Val())
-	assert.Equal(t, int(2), a.Exp())
+	a := newDecimal.New(1, 2)
+	assert.Equal(t, int64(1), a.CoefficientInt64())
+	assert.Equal(t, int32(2), a.Exponent())
 }
 
 func TestNumberString(t *testing.T) {
-	assert.Equal(t, "123400", Number{1234, 2}.String())
-	assert.Equal(t, "12340", Number{1234, 1}.String())
-	assert.Equal(t, "1234", Number{1234, 0}.String())
-	assert.Equal(t, "123.4", Number{1234, -1}.String())
-	assert.Equal(t, "12.34", Number{1234, -2}.String())
-	assert.Equal(t, "1.234", Number{1234, -3}.String())
-	assert.Equal(t, "0.1234", Number{1234, -4}.String())
-	assert.Equal(t, "0.001234", Number{1234, -6}.String())
+	assert.Equal(t, "123400", newDecimal.New(1234, 2).String())
+	assert.Equal(t, "12340", newDecimal.New(1234, 1).String())
+	assert.Equal(t, "1234", newDecimal.New(1234, 0).String())
+	assert.Equal(t, "123.4", newDecimal.New(1234, -1).String())
+	assert.Equal(t, "12.34", newDecimal.New(1234, -2).String())
+	assert.Equal(t, "1.234", newDecimal.New(1234, -3).String())
+	assert.Equal(t, "0.1234", newDecimal.New(1234, -4).String())
+	assert.Equal(t, "0.001234", newDecimal.New(1234, -6).String())
 
-	assert.Equal(t, "0", Number{0, 0}.String())
+	assert.Equal(t, "0", newDecimal.New(0, 0).String())
 
-	assert.Equal(t, "-123400", Number{-1234, 2}.String())
-	assert.Equal(t, "-12340", Number{-1234, 1}.String())
-	assert.Equal(t, "-1234", Number{-1234, 0}.String())
-	assert.Equal(t, "-123.4", Number{-1234, -1}.String())
-	assert.Equal(t, "-12.34", Number{-1234, -2}.String())
-	assert.Equal(t, "-1.234", Number{-1234, -3}.String())
-	assert.Equal(t, "-0.1234", Number{-1234, -4}.String())
-	assert.Equal(t, "-0.001234", Number{-1234, -6}.String())
+	assert.Equal(t, "-123400", newDecimal.New(-1234, 2).String())
+	assert.Equal(t, "-12340", newDecimal.New(-1234, 1).String())
+	assert.Equal(t, "-1234", newDecimal.New(-1234, 0).String())
+	assert.Equal(t, "-123.4", newDecimal.New(-1234, -1).String())
+	assert.Equal(t, "-12.34", newDecimal.New(-1234, -2).String())
+	assert.Equal(t, "-1.234", newDecimal.New(-1234, -3).String())
+	assert.Equal(t, "-0.1234", newDecimal.New(-1234, -4).String())
+	assert.Equal(t, "-0.001234", newDecimal.New(-1234, -6).String())
 }
 
 func TestNumberMarshalText(t *testing.T) {
-	res, err := Number{-1234, -6}.MarshalText()
+	res, err := newDecimal.New(-1234, -6).MarshalText()
 	assert.Equal(t, []byte("-0.001234"), res)
 	assert.Nil(t, err)
 }
@@ -92,37 +101,40 @@ func TestNumberUnmarshalText(t *testing.T) {
 		d     Number
 		valid bool
 	}{
-		{"-12340", Number{-12340, 0}, true},
-		{"-1234", Number{-1234, 0}, true},
-		{"-123.4", Number{-1234, -1}, true},
-		{"-12.34", Number{-1234, -2}, true},
-		{"-1.234", Number{-1234, -3}, true},
-		{"-0.1234", Number{-1234, -4}, true},
-		{"-0.01234", Number{-1234, -5}, true},
-		{"-0.001234", Number{-1234, -6}, true},
-		{"-0.0012340", Number{-12340, -7}, true},
-		{"-0.0000000", Number{0, -7}, true},
-		{"-00", Number{0, 0}, true},
-		{"-0", Number{0, 0}, true},
-		{"0", Number{0, 0}, true},
-		{"00", Number{0, 0}, true},
-		{"0.0000000", Number{0, -7}, true},
-		{"0.0012340", Number{12340, -7}, true},
-		{"0.001234", Number{1234, -6}, true},
-		{"0.01234", Number{1234, -5}, true},
-		{"0.1234", Number{1234, -4}, true},
-		{"1.234", Number{1234, -3}, true},
-		{"12.34", Number{1234, -2}, true},
-		{"123.4", Number{1234, -1}, true},
-		{"1234", Number{1234, 0}, true},
-		{"12340", Number{12340, 0}, true},
-		{".2", Number{2, -1}, true},
-		{".0", Number{0, -1}, true},
-		{"-.4", Number{-4, -1}, true},
+		{"-12340", newDecimal.New(-12340, 0), true},
+		{"-1234", newDecimal.New(-1234, 0), true},
+		{"-123.4", newDecimal.New(-1234, -1), true},
+		{"-12.34", newDecimal.New(-1234, -2), true},
+		{"-1.234", newDecimal.New(-1234, -3), true},
+		{"-0.1234", newDecimal.New(-1234, -4), true},
+		{"-0.01234", newDecimal.New(-1234, -5), true},
+		{"-0.001234", newDecimal.New(-1234, -6), true},
+		{"-0.0012340", newDecimal.New(-12340, -7), true},
+		{"-0.0000000", newDecimal.New(0, -7), true},
+		{"-00", newDecimal.New(0, 0), true},
+		{"-0", newDecimal.New(0, 0), true},
+		{"0", newDecimal.New(0, 0), true},
+		{"00", newDecimal.New(0, 0), true},
+		{"0.0000000", newDecimal.New(0, -7), true},
+		{"0.0012340", newDecimal.New(12340, -7), true},
+		{"0.001234", newDecimal.New(1234, -6), true},
+		{"0.01234", newDecimal.New(1234, -5), true},
+		{"0.1234", newDecimal.New(1234, -4), true},
+		{"1.234", newDecimal.New(1234, -3), true},
+		{"12.34", newDecimal.New(1234, -2), true},
+		{"123.4", newDecimal.New(1234, -1), true},
+		{"1234", newDecimal.New(1234, 0), true},
+		{"12340", newDecimal.New(12340, 0), true},
+		{".2", newDecimal.New(2, -1), true},
+		{".0", newDecimal.New(0, -1), true},
+		{"-.4", newDecimal.New(-4, -1), true},
+
+		{".-2", newDecimal.New(-2, -2), true},
+		{"1.", newDecimal.New(1, 0), true},
 
 		// this is a side effect of using strconv.ParseInt
-		{"+1", Number{1, 0}, true},
-		{"+1.2", Number{12, -1}, true},
+		{"+1", newDecimal.New(1, 0), true},
+		{"+1.2", newDecimal.New(12, -1), true},
 
 		{" 1", Number{}, false},
 		{"1 ", Number{}, false},
@@ -130,11 +142,9 @@ func TestNumberUnmarshalText(t *testing.T) {
 		{"1,2", Number{}, false},
 		{"1.+2", Number{}, false},
 		{"--1", Number{}, false},
-		{".-2", Number{}, false},
 		{".", Number{}, false},
 		{"1.-2", Number{}, false},
 		{"1.-", Number{}, false},
-		{"1.", Number{}, false},
 		{"a1", Number{}, false},
 		{"1.a2", Number{}, false},
 		{"a3.9", Number{}, false},
@@ -156,15 +166,15 @@ func TestNumberUnmarshalText(t *testing.T) {
 func TestNumberScan(t *testing.T) {
 	var a Number
 	assert.Nil(t, a.Scan([]byte("0.015")))
-	assert.Equal(t, Number{15, -3}, a)
+	assert.Equal(t, newDecimal.New(15, -3), a)
 
 	assert.NotNil(t, a.Scan("Strings are not supported"))
 }
 
 func TestNumberValue(t *testing.T) {
-	val, err := Number{123, -1}.Value()
+	val, err := newDecimal.New(123, -1).Value()
 	assert.Nil(t, err)
-	assert.Equal(t, []byte("12.3"), val)
+	assert.Equal(t, "12.3", val)
 }
 
 func TestNumberUnmarshalJSON(t *testing.T) {
@@ -172,11 +182,8 @@ func TestNumberUnmarshalJSON(t *testing.T) {
 		Num Number `json:"num"`
 	}
 	err := json.Unmarshal([]byte(`{"num": 123.456}`), &data)
-	expected := Number{
-		val: 123456,
-		exp: -3,
-	}
-	assert.NoError(t, err, "unmarshaling should not fail")
+	expected := newDecimal.New(123456, -3)
+	assert.NoError(t, err, "unmarshalling should not fail")
 	assert.Equal(t, expected, data.Num)
 }
 
@@ -185,21 +192,17 @@ func TestNumberUnmarshalJSONString(t *testing.T) {
 		Num Number `json:"num"`
 	}
 	err := json.Unmarshal([]byte(`{"num": "123.456"}`), &data)
-	expected := Number{
-		val: 123456,
-		exp: -3,
-	}
-	assert.NoError(t, err, "unmarshaling should not fail")
+	expected := newDecimal.New(123456, -3)
+	assert.NoError(t, err, "unmarshalling should not fail")
 	assert.Equal(t, expected, data.Num)
 }
 
 func TestNumberMarshalJSON(t *testing.T) {
 	data := struct {
 		Num Number `json:"num"`
-	}{Number{
-		val: 123456,
-		exp: -3,
-	}}
+	}{
+		newDecimal.New(123456, -3),
+	}
 	blob, err := json.Marshal(&data)
 	assert.NoError(t, err, "json marshaling should not fail")
 	assert.Equal(t, `{"num":123.456}`, string(blob))
@@ -211,130 +214,162 @@ func TestNumberCmp(t *testing.T) {
 		y        Number
 		expected int
 	}{{
-		x:        New(0, 0),
-		y:        New(0, 0),
+		x:        newDecimal.New(0, 0),
+		y:        newDecimal.New(0, 0),
 		expected: 0,
 	}, {
-		x:        New(5, 0),
-		y:        New(2, 0),
+		x:        newDecimal.New(5, 0),
+		y:        newDecimal.New(2, 0),
 		expected: 1,
 	}, {
-		x:        New(2, 0),
-		y:        New(5, 0),
+		x:        newDecimal.New(2, 0),
+		y:        newDecimal.New(5, 0),
 		expected: -1,
 	}, {
-		x:        New(10, -1),
-		y:        New(1, 0),
+		x:        newDecimal.New(10, -1),
+		y:        newDecimal.New(1, 0),
 		expected: 0,
 	}, {
-		x:        New(50, -1),
-		y:        New(2, 0),
+		x:        newDecimal.New(50, -1),
+		y:        newDecimal.New(2, 0),
 		expected: 1,
 	}, {
-		x:        New(1, 0),
-		y:        New(10, -1),
+		x:        newDecimal.New(1, 0),
+		y:        newDecimal.New(10, -1),
 		expected: 0,
 	}, {
-		x:        New(2, 0),
-		y:        New(50, -1),
+		x:        newDecimal.New(2, 0),
+		y:        newDecimal.New(50, -1),
 		expected: -1,
 	}}
 
 	for _, test := range tests {
 		actual := test.x.Cmp(test.y)
-		assert.Equal(t, test.expected, actual, fmt.Sprintf("%s cmp %s", test.x, test.y))
+		assert.Equal(
+			t,
+			test.expected,
+			actual,
+			fmt.Sprintf("%s cmp %s", test.x, test.y),
+		)
 	}
 }
 
 func TestFromInt(t *testing.T) {
-	assert.Equal(t, Number{5, 0}, FromInt(5))
-	assert.Equal(t, Number{0, 0}, FromInt(0))
-	assert.Equal(t, Number{-5, 0}, FromInt(-5))
+	assert.Equal(t, newDecimal.New(5, 0), newDecimal.NewFromInt(5))
+	assert.Equal(t, newDecimal.New(0, 0), newDecimal.NewFromInt(0))
+	assert.Equal(t, newDecimal.New(-5, 0), newDecimal.NewFromInt(-5))
 }
 
 func TestFromRat(t *testing.T) {
 	tests := []struct {
-		rat *big.Rat
-		exp int
-		n   Number
+		rat      *big.Rat
+		exp      int32
+		expected Number
 	}{
 		{
-			rat: big.NewRat(1234, 100),
-			exp: -2,
-			n:   Number{1234, -2},
+			rat:      big.NewRat(1234, 100),
+			exp:      -2,
+			expected: newDecimal.New(1234, -2),
 		},
 		{
-			rat: big.NewRat(1234, 100),
-			exp: -1,
-			n:   Number{123, -1},
+			rat:      big.NewRat(1234, 100),
+			exp:      -1,
+			expected: newDecimal.New(123, -1),
 		},
 		{
-			rat: big.NewRat(1234, 100),
-			exp: 0,
-			n:   Number{12, 0},
+			rat:      big.NewRat(1234, 100),
+			exp:      0,
+			expected: newDecimal.New(12, 0),
 		},
 		{
-			rat: big.NewRat(1234, 100),
-			exp: 1,
-			n:   Number{1, 1},
+			rat:      big.NewRat(1234, 100),
+			exp:      1,
+			expected: newDecimal.New(1, 1),
 		},
 		{
-			rat: big.NewRat(1000000000, 3),
-			exp: 0,
-			n:   Number{333333333, 0},
+			rat:      big.NewRat(1000000000, 3),
+			exp:      0,
+			expected: newDecimal.New(333333333, 0),
 		},
 		{
-			rat: big.NewRat(1000000000, 3),
-			exp: -7,
-			n:   Number{3333333333333333, -7},
+			rat:      big.NewRat(1000000000, 3),
+			exp:      -7,
+			expected: newDecimal.New(3333333333333333, -7),
 		},
 		{
-			rat: big.NewRat(1000000000, 3),
-			exp: -8,
-			n:   Number{33333333333333332, -8},
+			rat:      big.NewRat(1000000000, 3),
+			exp:      -8,
+			expected: newDecimal.New(33333333333333333, -8),
 		},
 		{
-			rat: big.NewRat(1000000000, 3),
-			exp: -9,
-			n:   Number{333333333333333312, -9},
+			rat:      big.NewRat(1000000000, 3),
+			exp:      -9,
+			expected: newDecimal.New(333333333333333333, -9),
 		},
 		{
-			rat: big.NewRat(1000000000, 3),
-			exp: -10,
-			n:   Number{3333333333333332992, -10},
+			rat:      big.NewRat(1000000000, 3),
+			exp:      -10,
+			expected: newDecimal.New(3333333333333333333, -10),
 		},
 		{
 			rat: big.NewRat(1000000000, 3),
 			exp: -11,
-			n:   Number{3333333333333332992, -10},
+			expected: newDecimal.NewFromBigInt(
+				new(big.Int).Add(
+					new(big.Int).Mul(
+						big.NewInt(3333333333333333),
+						big.NewInt(10000),
+					),
+					big.NewInt(3333),
+				),
+				-11,
+			),
 		},
 		{
 			rat: big.NewRat(1000000000, 3),
 			exp: -12,
-			n:   Number{3333333333333332992, -10},
+			expected: newDecimal.NewFromBigInt(
+				new(big.Int).Add(
+					new(big.Int).Mul(
+						big.NewInt(3333333333333333),
+						big.NewInt(100000),
+					),
+					big.NewInt(33333),
+				),
+				-12,
+			),
 		},
 		{
 			rat: big.NewRat(1000000000, 3),
 			exp: -13,
-			n:   Number{3333333333333332992, -10},
+			expected: newDecimal.NewFromBigInt(
+				new(big.Int).Add(
+					new(big.Int).Mul(
+						big.NewInt(3333333333333333),
+						big.NewInt(1000000),
+					),
+					big.NewInt(333333),
+				),
+				-13,
+			),
 		},
 	}
 
-	for _, test := range tests {
-		actual := FromRat(test.rat, test.exp)
-		assert.Equalf(t, test.n, actual, "%s (%d) expeted %s, got %s (%d * 10^%d)", test.rat, test.exp, test.n, actual, actual.val, actual.exp)
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("test-%d", i), func(t *testing.T) {
+			actual := newDecimal.NewFromBigRat(tt.rat, -1*tt.exp)
+			assert.Equalf(
+				t,
+				tt.expected,
+				actual, "%s (%d) expected %s, got %s (%d * 10^%d)",
+				tt.rat,
+				tt.expected,
+				actual,
+				actual.CoefficientInt64(),
+				actual.Exponent(),
+			)
+		})
 	}
-}
-
-func TestNew(t *testing.T) {
-	assert.Equal(t, Number{5, 0}, New(5, 0))
-	assert.Equal(t, Number{0, 0}, New(0, 0))
-	assert.Equal(t, Number{-5, 0}, New(-5, 0))
-
-	// Assert value is not normalized
-	assert.Equal(t, Number{50, -1}, New(50, -1))
-	assert.Equal(t, Number{50, 0}, New(50, 0))
-	assert.Equal(t, Number{50, 1}, New(50, 1))
 }
 
 func TestNumberMulInt(t *testing.T) {
@@ -343,37 +378,42 @@ func TestNumberMulInt(t *testing.T) {
 		y        int
 		expected Number
 	}{{
-		x:        Number{0, 0},
+		x:        newDecimal.New(0, 0),
 		y:        5,
-		expected: Number{0, 0},
+		expected: newDecimal.New(0, 0),
 	}, {
-		x:        Number{1, 0},
+		x:        newDecimal.New(1, 0),
 		y:        5,
-		expected: Number{5, 0},
-	}, {
-		// Assert exponent is not normalized
-		x:        Number{2, -1},
-		y:        5,
-		expected: Number{10, -1},
+		expected: newDecimal.New(5, 0),
 	}, {
 		// Assert exponent is not normalized
-		x:        Number{2, -1},
+		x:        newDecimal.New(2, -1),
+		y:        5,
+		expected: newDecimal.New(10, -1),
+	}, {
+		// Assert exponent is not normalized
+		x:        newDecimal.New(2, -1),
 		y:        0,
-		expected: Number{0, -1},
+		expected: newDecimal.New(0, -1),
 	}}
 
 	for _, test := range tests {
-		actual := test.x.MulInt(test.y)
-		assert.Equal(t, test.expected, actual, fmt.Sprintf("%s * %d", test.x, test.y))
+		actual := MulInt(test.x, test.y)
+		assert.Equal(
+			t,
+			test.expected,
+			actual,
+			fmt.Sprintf("%s * %d", test.x, test.y),
+		)
 	}
 }
 
 func TestNumberIsZero(t *testing.T) {
-	assert.True(t, Zero().IsZero())
-	assert.True(t, Number{0, -1}.IsZero())
-	assert.True(t, Number{0, 0}.IsZero())
-	assert.True(t, Number{0, 1}.IsZero())
-	assert.False(t, Number{1, 0}.IsZero())
+	assert.True(t, newDecimal.Zero.IsZero())
+	assert.True(t, newDecimal.New(0, -1).IsZero())
+	assert.True(t, newDecimal.New(0, 0).IsZero())
+	assert.True(t, newDecimal.New(0, 1).IsZero())
+	assert.False(t, newDecimal.New(1, 0).IsZero())
 }
 
 func TestNumberRound(t *testing.T) {
@@ -392,7 +432,7 @@ func TestNumberRound(t *testing.T) {
 		{RoundFloor, "123.4500", -2, "123.45"},
 		{RoundFloor, "123.45", -1, "123.4"},
 		{RoundFloor, "-123.45", -1, "-123.5"},
-		// Ceil
+		//// Ceil
 		{RoundCeil, "123.4500", -2, "123.45"},
 		{RoundCeil, "123.45", -1, "123.5"},
 		{RoundCeil, "-123.45", -1, "-123.4"},
@@ -422,14 +462,34 @@ func TestNumberRound(t *testing.T) {
 
 	var err error
 	var num, res Number
+
 	for _, test := range tests {
 		err = num.UnmarshalText([]byte(test.num))
 		assert.NoError(t, err)
 		err = res.UnmarshalText([]byte(test.result))
 		assert.NoError(t, err)
 
-		result := num.Round(test.exp, test.rule)
-		assert.Equal(t, res, result, fmt.Sprintf("%s round(%d, %d)", test.num, test.exp, test.rule))
+		result := Round(num, test.exp, test.rule)
+
+		// Zero should never be compared with == or != directly, please use decimal.Equal or decimal.Cmp instead.
+		if result.IsZero() {
+			assert.Equal(
+				t,
+				true,
+				result.Equal(res),
+				fmt.Sprintf("%s round(%d, %d)",
+					test.num,
+					test.exp,
+					test.rule),
+			)
+		} else {
+			assert.Equal(
+				t,
+				res,
+				result,
+				fmt.Sprintf("%s round(%d, %d)", test.num, test.exp, test.rule),
+			)
+		}
 	}
 }
 
@@ -439,24 +499,24 @@ func TestDecimalNeg(t *testing.T) {
 		expected Number
 	}{
 		{
-			n:        Zero(),
-			expected: Zero(),
+			n:        newDecimal.Zero,
+			expected: newDecimal.Zero,
 		},
 		{
-			n:        FromInt(1),
-			expected: FromInt(-1),
+			n:        newDecimal.NewFromInt(1),
+			expected: newDecimal.NewFromInt(-1),
 		},
 		{
-			n:        FromInt(-1),
-			expected: FromInt(1),
+			n:        newDecimal.NewFromInt(-1),
+			expected: newDecimal.NewFromInt(1),
 		},
 		{
-			n:        New(13, 2),
-			expected: New(-13, 2),
+			n:        newDecimal.New(13, 2),
+			expected: newDecimal.New(-13, 2),
 		},
 		{
-			n:        New(13, -2),
-			expected: New(-13, -2),
+			n:        newDecimal.New(13, -2),
+			expected: newDecimal.New(-13, -2),
 		},
 	}
 
@@ -471,15 +531,15 @@ func TestDecimalRat(t *testing.T) {
 		r *big.Rat
 	}{
 		{
-			n: New(1, 0),
+			n: newDecimal.New(1, 0),
 			r: big.NewRat(1, 1),
 		},
 		{
-			n: New(5, -1),
+			n: newDecimal.New(5, -1),
 			r: big.NewRat(1, 2),
 		},
 		{
-			n: New(5, 1),
+			n: newDecimal.New(5, 1),
 			r: big.NewRat(50, 1),
 		},
 	}
@@ -489,51 +549,20 @@ func TestDecimalRat(t *testing.T) {
 	}
 }
 
-func TestDenormalizePanic(t *testing.T) {
-	tests := []struct {
-		n   Number
-		exp int
-		msg string
-	}{
-		{
-			n:   New(123, -2),
-			exp: -19,
-			msg: "logTable lookup should fail",
-		},
-		{
-			n:   New(112045202, -4),
-			exp: -17,
-			msg: "scaled number should not be equal to original",
-		},
-	}
-	for _, tt := range tests {
-		assert.Panics(t, func() {
-			tt.n.denormalize(tt.exp)
-		}, tt.msg)
-	}
-}
-
 func BenchmarkNumberScanRoundMarshal(b *testing.B) {
 	var d Number
 	for i := 0; i < b.N; i++ {
 		_ = d.Scan([]byte("123456789.123456789"))
-		d = d.Round(-2, RoundMath)
+		d = Round(d, -2, RoundMath)
 		_, _ = d.MarshalText()
 	}
 }
 
 func BenchmarkExternalNumberScanRoundMarshal(b *testing.B) {
-	var d decimal.Decimal
+	var d newDecimal.Decimal
 	for i := 0; i < b.N; i++ {
 		_ = d.Scan([]byte("123456789.123456789"))
 		d = d.Round(2)
 		_, _ = d.MarshalText()
-	}
-}
-
-func BenchmarkNumberDenormalize(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		n := Number{val: 123456, exp: 0}
-		n.denormalize(-8)
 	}
 }
