@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"testing"
 
-	newDecimal "github.com/shopspring/decimal"
+	newDecimal "github.com/davseby/decimal/v2"
 	"github.com/stretchr/testify/assert"
 )
 

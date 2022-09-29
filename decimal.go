@@ -4,7 +4,7 @@ import (
 	"math"
 	"math/big"
 
-	newDecimal "github.com/shopspring/decimal"
+	newDecimal "github.com/davseby/decimal/v2"
 )
 
 type Number = newDecimal.Decimal
@@ -66,7 +66,7 @@ func ScaledVal(d newDecimal.Decimal, exp int) int64 {
 	return Rescale(d, int32(exp)).CoefficientInt64()
 }
 
-// Rescale copied from `shopspring/decimal`
+// Rescale copied from `davseby/decimal`
 func Rescale(d newDecimal.Decimal, exp int32) newDecimal.Decimal {
 	if d.Exponent() == exp {
 		return d
