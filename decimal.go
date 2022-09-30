@@ -66,6 +66,12 @@ func ScaledVal(d newDecimal.Decimal, exp int) int64 {
 	return Rescale(d, int32(exp)).CoefficientInt64()
 }
 
+// NewFromRat returns a new Decimal from a big.Rat. The numerator and
+// denominator are divided and rounded to the given exponent.
+func NewFromRat(r *big.Rat, e int) newDecimal.Decimal {
+	return newDecimal.NewFromBigInt(r.Num(), 0).DivRound(newDecimal.NewFromBigInt(r.Denom(), 0), -int32(e))
+}
+
 // Rescale copied from `shopspring/decimal`
 func Rescale(d newDecimal.Decimal, exp int32) newDecimal.Decimal {
 	if d.Exponent() == exp {

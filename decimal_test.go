@@ -263,7 +263,7 @@ func TestFromInt(t *testing.T) {
 func TestFromRat(t *testing.T) {
 	tests := []struct {
 		rat      *big.Rat
-		exp      int32
+		exp      int
 		expected Number
 	}{
 		{
@@ -357,7 +357,7 @@ func TestFromRat(t *testing.T) {
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("test-%d", i), func(t *testing.T) {
-			actual := newDecimal.NewFromBigRat(tt.rat, -1*tt.exp)
+			actual := NewFromRat(tt.rat, tt.exp)
 			assert.Equalf(
 				t,
 				tt.expected,
