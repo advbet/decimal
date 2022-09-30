@@ -260,7 +260,7 @@ func TestFromInt(t *testing.T) {
 	assert.Equal(t, newDecimal.New(-5, 0), newDecimal.NewFromInt(-5))
 }
 
-func TestFromRat(t *testing.T) {
+func TestNewFromRat(t *testing.T) {
 	tests := []struct {
 		rat      *big.Rat
 		exp      int
