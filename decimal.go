@@ -27,6 +27,27 @@ func init() {
 	newDecimal.MarshalJSONWithoutQuotes = true
 }
 
+// Zero create a new decimal number that is equal to zero.
+func Zero() Number {
+	return newDecimal.New(0, 0)
+}
+
+// New creates a new decimal number having value of val*10^exp.
+func New(val int64, exp int) Number {
+	return newDecimal.New(val, int32(exp))
+}
+
+// FromInt creates a new instance of decimal number with an integer value and
+// zero exponent.
+func FromInt(val int) Number {
+	return newDecimal.New(int64(val), 0)
+}
+
+// FromString creates a new instance of decimal number by parsing given string.
+func FromString(str string) (Number, error) {
+	return newDecimal.NewFromString(str)
+}
+
 // Round scales decimal value to an integer value with given exponent. On
 // exponent scale-down decimal value precision is preserved, on exponent
 // scale-up rounding with the given rounding rule is performed.
@@ -69,7 +90,7 @@ func ScaledVal(d newDecimal.Decimal, exp int) int64 {
 // NewFromRat returns a new Decimal from a big.Rat. The numerator and
 // denominator are divided and rounded to the given exponent.
 func NewFromRat(r *big.Rat, e int) newDecimal.Decimal {
-	return newDecimal.NewFromBigInt(r.Num(), 0).DivRound(newDecimal.NewFromBigInt(r.Denom(), 0), -int32(e))
+	return Round(newDecimal.NewFromBigInt(r.Num(), 0).Div(newDecimal.NewFromBigInt(r.Denom(), 0)), e, RoundTruncate)
 }
 
 // Rescale copied from `shopspring/decimal`
